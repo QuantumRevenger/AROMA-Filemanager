@@ -91,13 +91,13 @@ typedef struct {
 
 #include "libs/aroma_favorite.c"
 #include "libs/aroma_uisettings.c"
-#include "libs/aroma_flasher.c"
 #include "libs/aroma_uicopy.c"
 #include "libs/aroma_uicut.c"
 #include "libs/aroma_uidel.c"
 #include "libs/aroma_uiabout.c"
 #include "libs/aroma_uiperm.c"
 #include "libs/aroma_uiterminal.c"
+#include "libs/aroma_uiextract.c"
 
 #include "libs/aroma_uimain.c"
 #include "libs/aroma_handler.c"
@@ -151,6 +151,7 @@ byte aui_start() {
     byte back_ani = 0;
     
   aui_cfg_setcolorspace();               //-- Force Colorspace
+  aui_cfg_setvibration();
     do {
       LOGS("Change Folder %s\n", path);
       byte ret_show = aui_show(&path, &tool_state, selfile, back_ani);
@@ -185,8 +186,31 @@ byte aui_start() {
       else if (ret_show == 6) {
         /* Terminal */
         printf("Opening Terminal At : %s\n", path);
-        aui_show_terminal(path);
+        aui_show_terminal(path,"-i",NULL);
         back_ani = 1;
+      }
+      else if (ret_show == 7) {
+        /* Run Shell */
+        char command_file[512];
+        snprintf(command_file,512,"%s%s",path,selfile);
+        printf("Running Shell At : %s - %s\n", path,command_file);
+        aui_show_terminal(path,"-c",command_file);
+        back_ani = 1;
+      }
+      else if (ret_show == 8) {
+        /* Run Shell */
+        char command_file[512];
+        snprintf(command_file,512,"%s%s",path,selfile);
+        printf("Running Shell At : %s - %s\n", path,command_file);
+        aui_show_terminal(path,"-a",command_file);
+        back_ani = 1;
+      }
+      else if (ret_show == 9) {
+        /* Extract File */
+        char absfile[512];
+        snprintf(absfile,512,"%s%s",path,selfile);
+        printf("Extract File : %s\n", absfile);
+        auido_extract(absfile,selfile,&path);
       }
     }
     while (1);

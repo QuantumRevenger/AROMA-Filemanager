@@ -224,9 +224,19 @@ void aui_show_setting() {
   acopt_add(v.hFile, alang_get("settings.colorspace.argb"), "",
             (auic()->colorspace == 3) ? 1 : 0);
   acopt_add(v.hFile, alang_get("settings.colorspace.bgra"), "",
-            (auic()->colorspace == 4) ? 1 : 0);           
+            (auic()->colorspace == 4) ? 1 : 0);
             
-            
+  //-- vibration: 10
+  acopt_addgroup(v.hFile, alang_get("settings.vibration"), "");
+  acopt_add(v.hFile, alang_get("settings.vibration.none"), "",
+            (auic()->vibration == 0) ? 1 : 0);
+  acopt_add(v.hFile, alang_get("settings.vibration.low"), "",
+            (auic()->vibration == 1) ? 1 : 0);
+  acopt_add(v.hFile, alang_get("settings.vibration.medium"), "",
+            (auic()->vibration == 2) ? 1 : 0);
+  acopt_add(v.hFile, alang_get("settings.vibration.high"), "",
+            (auic()->vibration == 3) ? 1 : 0);
+  
   //-- Font size : 8
   /*
      acopt_addgroup(v.hFile,"Automount Partitions","");
@@ -234,9 +244,9 @@ void aui_show_setting() {
      acopt_add(v.hFile,"None","",1);
    */
   //-- TOOLS
-  v.b1 = imgbtn(v.hWin, v.pad, v.btnY - v.btnFH, v.btnW, v.btnH + v.btnFH, &UI_ICONS[33], aui_tbtitle(9), 1, 12); //-- Done
-  v.b2 = imgbtn(v.hWin, v.pad + v.btnW, v.btnY - v.btnFH, v.btnW, v.btnH + v.btnFH, &UI_ICONS[14], aui_tbtitle(10), 1, 22); //-- Reset
-  v.b3 = imgbtn(v.hWin, v.pad + v.btnW * 2, v.btnY - v.btnFH, v.btnW, v.btnH + v.btnFH, &UI_ICONS[0], aui_tbtitle(8), 1, 20); //-- Cancel
+  v.b1 = imgbtn(v.hWin, v.pad, v.btnY - v.btnFH, v.btnW, v.btnH + v.btnFH, &UI_ICONS[33], aui_tbtitle(9), 1, 12);	//-- Done
+  v.b2 = imgbtn(v.hWin, v.pad + v.btnW, v.btnY - v.btnFH, v.btnW, v.btnH + v.btnFH, &UI_ICONS[14], aui_tbtitle(10), 1, 22);	//-- Reset
+  v.b3 = imgbtn(v.hWin, v.pad + v.btnW * 2, v.btnY - v.btnFH, v.btnW, v.btnH + v.btnFH, &UI_ICONS[0], aui_tbtitle(8), 1, 20);	//-- Cancel
   //-- Show Window
   aw_show_ex(v.hWin, 2, 0, v.hFile);
   // aw_setfocus(v.hWin,v.hFile);
@@ -294,6 +304,8 @@ void aui_show_setting() {
   if (saveconfig) {
     byte font_reloaded = 0;
     byte colorspace_refreshed = 0;
+    byte vibration_refreshed = 0;
+    
     //-- Text on toolbar
     auic()->tooltext = (acopt_getvalue(v.hFile, 1) == 1) ? 1 : 0;
     auic()->automount = (acopt_getvalue(v.hFile, 8) == 1) ? 1 : 0;
@@ -310,6 +322,12 @@ void aui_show_setting() {
     if (newcolorspace != auic()->colorspace) {
       auic()->colorspace = newcolorspace;
       colorspace_refreshed = 1;
+    }
+    
+    byte newvibration = (byte) acopt_getvalue(v.hFile,10) - 1;
+    if (newvibration != auic()->vibration) {
+      auic()->vibration = newvibration;
+      vibration_refreshed = 1;
     }
     
     //-- Font Family
@@ -370,6 +388,10 @@ void aui_show_setting() {
     // set new color space
     if (colorspace_refreshed) {
       aui_cfg_setcolorspace();
+    }
+    
+    if (vibration_refreshed){
+      aui_cfg_setvibration();
     }
     
     save_to_file = 1;

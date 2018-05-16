@@ -90,27 +90,7 @@ byte auia_click(AUI_VARSP v) {
     aui_setpath(&v->path, v->path, fl, 1);
     v->reshow = 1;
     return 0;
-  } 
-  else if (strstr(fl, ".zip") != NULL) {
-        if (EndsWith(fl,".zip")){
-          char * full_fl = NULL;
-          aui_setpath(&full_fl, v->path, fl, 0);
-          choose_kernel(full_fl, 1);
-          free(full_fl);
-          v->reshow = 1;
-          return 0;
-        }
-  } 
-  else if (strstr(fl, ".img") != NULL) {
-        if (EndsWith(fl,".img")){
-          char * full_fl = NULL;
-          aui_setpath(&full_fl, v->path, fl, 0);
-          choose_kernel(full_fl,0);
-          free(full_fl);
-          v->reshow = 1;
-          return 0;
-      }
-  } 
+  }
   else if (fl != NULL) {
     printf("File  [%i]: %s\n", dtype, fl);
   }
@@ -288,6 +268,33 @@ byte auia_hold(AUI_VARSP v) {
     aw_menuset(mi, cp++, "tools.cut", 3);
     aw_menuset(mi, cp++, "tools.delete", 4);
     aw_menuset(mi, cp++, "tools.chmod", 1);
+    
+    byte is_zip = 0;
+    byte set_shell = 0;
+    char * extzip = fl+strlen(fl)-4;
+    if (strcmp(extzip,".zip")==0){
+      is_zip=1;
+      aw_menuset(mi, cp++, "tools.extract", 26);
+    }
+    else if ((dtype == 8) || (dtype == 28)) {
+      //-- Run Shell
+      char * prm=afbox_dperm(v->hFile);
+      if (strlen(prm)==9){
+        if (prm[2]=='x'){
+          set_shell = 1;
+        }
+      }
+      if (!set_shell){
+        char * ext = fl + strlen(fl) - 3;
+        if (strcmp(ext,".sh")==0){
+          set_shell=2;
+        }
+      }
+      if (set_shell){
+        aw_menuset(mi, cp++, "tools.shell", 40);
+      }
+    }
+    
     byte ret = aw_menu(v->hWin, fl, mi, cp);
     
     if ((!onfav) && (ret > 0)) {
@@ -334,6 +341,19 @@ byte auia_hold(AUI_VARSP v) {
         
         LOGS("Add To Favorite: %s\n", full_fl);
         free(full_fl);
+      }
+    }
+    else if (ret==7){
+      if (is_zip){
+        v->reshow=9;
+        snprintf(v->selfile,256,"%s",fl);
+        return 0;
+      }
+      else{
+        // OPEN CONSOLE
+        v->reshow = 6+set_shell;
+        snprintf(v->selfile,256,"%s",fl);
+        return 0;
       }
     }
   }
@@ -568,7 +588,7 @@ byte auia_menu(AUI_VARSP v) {
   }
   
   //-- Common command
-  if (common_cmd == 1) {  //-- Exit
+  if (common_cmd == 1) {	//-- Exit
     AWMENUITEM mi[2];
     aw_menuset(mi, 0, "yes", 33);
     aw_menuset(mi, 1, "no", 0);
@@ -581,14 +601,14 @@ byte auia_menu(AUI_VARSP v) {
       return 0;
     }
   }
-  else if (common_cmd == 2) { //-- Settings
+  else if (common_cmd == 2) {	//-- Settings
     v->reshow = 2;
     return 0;
   }
-  else if (common_cmd == 3) { //-- About
+  else if (common_cmd == 3) {	//-- About
     auido_about_dialog(v->hWin);
   }
-  else if (common_cmd == 4) { //-- Terminal
+  else if (common_cmd == 4) {	//-- Terminal
     v->reshow = 6;
     return 0;
   }
